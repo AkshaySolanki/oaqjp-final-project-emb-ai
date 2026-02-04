@@ -1,43 +1,63 @@
-#import flask,render_template and request libraries from flask
+"""
+Flask server for the Emotion Detection application.
+
+Exposes:
+- GET /           -> renders the index page
+- GET /emotionDetector?textToAnalyze=<text> -> returns emotion analysis
+"""
+
+from __future__ import annotations
+
 from flask import Flask, render_template, request
-#import emotion_detector function from package
+
 from EmotionDetection.emotion_detection import emotion_detector
 
-app = Flask("Emotion Detector")
+APP_NAME = "Emotion Detector"
+HOST = "0.0.0.0"
+PORT = 5000
+INVALID_TEXT_MESSAGE = "Invalid text! Please try again!."
+TEXT_PARAM = "textToAnalyze"
+
+app = Flask(APP_NAME)
+
 
 @app.route("/emotionDetector")
 def em_detector():
-    
-    # Retrieve the text to analyze from the request arguments
-    text_to_analyze = request.args.get('textToAnalyze')
-    
-    # Pass the text to the emotion_detector function and store the response
+    """
+    Analyze emotions for the text passed in the `textToAnalyze` query parameter.
+
+    Returns a formatted string of emotion scores, or an error message if the input
+    is invalid and dominant emotion cannot be determined.
+    """
+    text_to_analyze = request.args.get(TEXT_PARAM)
+
     response = emotion_detector(text_to_analyze)
 
-    
-    #Error handling: if dominant_emotion is None, return the required message
-    if response.get("dominant_emotion") is None:
-        return "Invalid text! Please try again!."
+    dominant = response.get("dominant_emotion")
+    if dominant is None:
+        return INVALID_TEXT_MESSAGE
 
-    #If values are valid, extract the emotion values from response
-    anger = response['anger']
-    disgust = response['disgust']
-    fear = response['fear']
-    joy = response['joy']
-    sadness = response['sadness']
-    dominant_emotion = response['dominant_emotion']
+    # Extract emotion values from response
+    anger = response.get("anger")
+    disgust = response.get("disgust")
+    fear = response.get("fear")
+    joy = response.get("joy")
+    sadness = response.get("sadness")
 
-    # Return a formatted string with the emotion scores
     return (
         "For the given statement, the system response is "
         f"'anger': {anger}, 'disgust': {disgust}, 'fear': {fear}, "
         f"'joy': {joy} and 'sadness': {sadness}. "
-        f"The dominant emotion is {dominant_emotion}."
+        f"The dominant emotion is {dominant}."
     )
+
 
 @app.route("/")
 def render_index_page():
-    return render_template('index.html')
+    """Render the application home page."""
+    return render_template("index.html")
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host=HOST, port=PORT)
+    
