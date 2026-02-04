@@ -14,7 +14,12 @@ def em_detector():
     # Pass the text to the emotion_detector function and store the response
     response = emotion_detector(text_to_analyze)
 
-    #extract the emotion values from response
+    
+    #Error handling: if dominant_emotion is None, return the required message
+    if response.get("dominant_emotion") is None:
+        return "Invalid text! Please try again!."
+
+    #If values are valid, extract the emotion values from response
     anger = response['anger']
     disgust = response['disgust']
     fear = response['fear']
